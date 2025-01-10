@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<target version="1.0">
+  <architecture>i386</architecture>
+  <feature name="org.gnu.gdb.i386.core">
+    <reg name="eax" bitsize="32"/>
+    <reg name="ecx" bitsize="32"/>
+    <reg name="edx" bitsize="32"/>
+    <reg name="ebx" bitsize="32"/>
+    <reg name="esp" bitsize="32"/>
+    <reg name="ebp" bitsize="32"/>
+    <reg name="esi" bitsize="32"/>
+    <reg name="edi" bitsize="32"/>
+    <reg name="eip" bitsize="32"/>
+    <reg name="eflags" bitsize="32"/>
+    <reg name="cs" bitsize="32"/>
+    <reg name="ss" bitsize="32"/>
+    <reg name="ds" bitsize="32"/>
+    <reg name="es" bitsize="32"/>
+    <reg name="fs" bitsize="32"/>
+    <reg name="gs" bitsize="32"/>
+  </feature>
+</target>
