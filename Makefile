@@ -7,30 +7,34 @@ CFLAGS=-O0 -g -ffreestanding -m32
 BOOTFLAGS=-f bin
 LDFLAGS=-Ttext=0x1000 -nostdlib -ffreestanding -m32 -Wl,--oformat=binary
 
-OBJECTS=loader_entry.o loader.o
-TARGET=image.bin
+SRC_DIR=..
+BUILD_DIR=.
+
+OBJECTS=$(BUILD_DIR)/loader_entry.o $(BUILD_DIR)/loader.o
+TARGET=$(BUILD_DIR)/image.bin
 
 all: $(TARGET)
 
-$(TARGET): boot.bin loader.bin
-	cat boot.bin loader.bin > $(TARGET)
+$(TARGET): $(BUILD_DIR)/boot.bin $(BUILD_DIR)/loader.bin
+	cat $(BUILD_DIR)/boot.bin $(BUILD_DIR)/loader.bin > $(TARGET)
 
-boot.bin: boot.asm
+$(BUILD_DIR)/boot.bin: $(SRC_DIR)/boot.asm
 	$(ASM) $(BOOTFLAGS) $< -o $@
 
-loader.bin: $(OBJECTS)
+$(BUILD_DIR)/loader.bin: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-loader_entry.o: loader.asm
+$(BUILD_DIR)/loader_entry.o: $(SRC_DIR)/loader.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-loader.o: loader.c
+$(BUILD_DIR)/loader.o: $(SRC_DIR)/loader.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o *.bin $(TARGET)
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.bin $(TARGET)
 
 run: $(TARGET)
 	qemu-system-i386 -fda $(TARGET)
 
 .PHONY: all clean
+
