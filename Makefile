@@ -18,13 +18,13 @@ all: $(TARGET)
 $(TARGET): $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
 	cat $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin > $(TARGET)
 
-$(BUILD_DIR)/boot.bin: $(SRC_DIR)/boot.asm
+$(BUILD_DIR)/boot.bin: $(SRC_DIR)/boot/boot.asm
 	$(ASM) $(BOOTFLAGS) $< -o $@
 
 $(BUILD_DIR)/kernel.bin: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-$(BUILD_DIR)/kernel_entry.o: $(SRC_DIR)/kernel_entry.asm
+$(BUILD_DIR)/kernel_entry.o: $(SRC_DIR)/boot/kernel_entry.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 $(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c
