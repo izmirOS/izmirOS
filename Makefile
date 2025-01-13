@@ -1,8 +1,12 @@
 ASM=nasm
 CC=i386-elf-gcc
+CXX=i386-elf-g++
 
 ASMFLAGS=-f elf32
-CFLAGS=-O0 -g -ffreestanding -m32
+CFLAGS=-O2 -g -ffreestanding -m32
+
+# no rtti, no cpp exceptions, no virtual functions
+CXXFLAGS=-O2 -g -ffreestanding -m32 -fno-exceptions -fno-rtti
 
 BOOTFLAGS=-f bin
 LDFLAGS=-Ttext=0x1000 -nostdlib -ffreestanding -m32 -Wl,--oformat=binary
@@ -27,8 +31,8 @@ $(BUILD_DIR)/kernel.bin: $(OBJECTS)
 $(BUILD_DIR)/kernel_entry.o: $(SRC_DIR)/boot/kernel_entry.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.bin $(TARGET)
