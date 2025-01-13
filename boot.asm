@@ -1,58 +1,80 @@
-bits 16
-org 0x7c00
-section .text
-global start
-start:
-    cli
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov sp, 0x7D00
-    mov [bootdrive], dl
+[org 0x7C00]
+[bits 16]
 
-    ; Reset disk system first
-    xor ax, ax      ; ah = 0 (reset disk)
-    mov dl, [bootdrive]
-    int 0x13
-    jc disk_error
+KERNEL_OFFSET equ 0x1000
 
-    ; Read Stage 2
-    xor bx, bx
-    mov es, bx
-    mov bx, 0x7E00      ; ES:BX = 0000:7E00
-    
-    mov ah, 0x02        ; Read sectors function
-    mov al, 0x01        ; Read 1 sector
-    mov ch, 0x00        ; Cylinder 0
-    mov cl, 0x02        ; Sector 2 (1-based)
-    mov dh, 0x00        ; Head 0
-    mov dl, [bootdrive] ; Drive number
+mov [BOOT_DRIVE], dl
+call load_boot
+call execute_boot
 
-    int 0x13
-    jc disk_error
+load_boot:
+	pusha
+	mov bx, LOADING_BOOT_MSG
+	call print_string
+	mov bx, KERNEL_OFFSET
+	mov dh, 15
+	mov dl, [BOOT_DRIVE]
+	call disk_read
+	popa
+	ret
 
-    sti
-    jmp 0x7E00
+execute_boot:
+	mov bx, EXECUTING_BOOT_MSG
+	call print_string
+	call KERNEL_OFFSET
+	jmp $
 
-disk_error:
-    ; Print error code from ah
-    push ax
-    mov ah, 0x0e
-    mov al, 'E'
-    int 0x10
-    pop ax
-    
-    mov al, ah      ; Error code is in ah
-    add al, '0'     ; Convert to ASCII
-    mov ah, 0x0e
-    int 0x10
-    
-    cli
-    hlt
+disk_read:
+	pusha
+	push dx
 
-bootdrive: db 0
-times 510-($-$$) db 0
-dw 0xaa55
+	mov ah, 0x02
+	mov al, dh
+	mov ch, 0x00
+	mov dh, 0x00
+	mov cl, 0x02
+	int 0x13
+
+	jc disk_read_error
+
+	pop dx
+	cmp dh, al
+	jne disk_read_error
+
+	popa
+	ret
+
+disk_read_error:
+	mov bx, DISK_READ_ERROR_MSG
+	call print_string
+	hlt
+
+print_string:
+	pusha
+
+	.loop:
+	mov al, [bx]
+	cmp al, 0
+	je .ret
+	mov ah, 0x0E
+	int 0x10
+	inc bx
+	jmp .loop
+
+	.ret:
+	mov ah, 0x0E
+	mov al, 0x0A
+	int 0x10
+	mov al, 0x0D
+	int 0x10
+
+	popa
+	ret
+
+BOOT_DRIVE: db 0
+LOADING_BOOT_MSG: db "Loading Boot", 0
+EXECUTING_BOOT_MSG: db "Executing Boot", 0
+DISK_READ_ERROR_MSG: db "Disk Error", 0
+
+times 510 - ($ - $$) db 0
+dw 0xAA55

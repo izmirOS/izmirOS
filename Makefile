@@ -1,53 +1,36 @@
-.PHONY: all clean run debug lldb hexdump
+ASM=nasm
+CC=i386-elf-gcc
 
-# Default target
-all: disk.img kernel
+ASMFLAGS=-f elf32
+CFLAGS=-O0 -g -ffreestanding -m32
 
-# Build the bootloader binaries
+BOOTFLAGS=-f bin
+LDFLAGS=-Ttext=0x1000 -nostdlib -ffreestanding -m32 -Wl,--oformat=binary
+
+OBJECTS=loader_entry.o loader.o
+TARGET=image.bin
+
+all: $(TARGET)
+
+$(TARGET): boot.bin loader.bin
+	cat boot.bin loader.bin > $(TARGET)
+
 boot.bin: boot.asm
-	nasm -f bin boot.asm -o boot.bin -g
+	$(ASM) $(BOOTFLAGS) $< -o $@
 
-boot2.bin: boot2.asm
-	nasm -f bin boot2.asm -o boot2.bin -g
+loader.bin: $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-# Compile kernel
-kernel: kernel.c
-	x86_64-elf-gcc -ffreestanding -Wall -c -m32 kernel.c -o kernel.o
-	x86_64-elf-gcc -ffreestanding -m32 -nostdlib -o kernel.elf -Wl,-m,elf_i386 kernel.o
-	x86_64-elf-objcopy -O binary kernel.elf kernel.bin
+loader_entry.o: loader.asm
+	$(ASM) $(ASMFLAGS) $< -o $@
 
-# Create disk image
-disk.img: boot.bin boot2.bin kernel
-	dd if=/dev/zero of=disk.img bs=512 count=2880
-	dd if=boot.bin of=disk.img bs=512 count=1 conv=notrunc
-	dd if=boot2.bin of=disk.img bs=512 seek=1 conv=notrunc
-	dd if=kernel.bin of=disk.img bs=512 seek=2 conv=notrunc
+loader.o: loader.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Normal QEMU run
-run: disk.img
-	qemu-system-i386 -fda disk.img
-
-# Run QEMU with debugger server
-debug: disk.img
-	qemu-system-i386 -fda disk.img -s -S
-
-# Connect LLDB
-lldb:
-	lldb \
-	--one-line "gdb-remote localhost:1234" \
-	--one-line "settings set plugin.process.gdb-remote.target-definition-file i386.xml" \
-	--one-line "break set -a 0x7c00" \
-	--one-line "continue"
-
-# Show disk contents
-hexdump: disk.img
-	@echo "=== First Sector (Bootloader) ==="
-	@xxd -g 1 -l 512 disk.img
-	@echo -e "\n=== Second Sector (Stage 2) ==="
-	@xxd -g 1 -s 512 -l 512 disk.img
-	@echo -e "\n=== Third Sector (Kernel) ==="
-	@xxd -g 1 -s 1024 -l 512 disk.img
-
-# Clean build artifacts
 clean:
-	rm -f *.bin *.o disk.img
+	rm -f *.o *.bin $(TARGET)
+
+run: $(TARGET)
+	qemu-system-i386 -fda $(TARGET)
+
+.PHONY: all clean
