@@ -13,21 +13,11 @@ start:
     mov sp, 0x7D00
     mov [bootdrive], dl
 
-    ; Print 'S' to show we started
-    mov ah, 0x0e
-    mov al, 'S'
-    int 0x10
-
     ; Reset disk system first
     xor ax, ax      ; ah = 0 (reset disk)
     mov dl, [bootdrive]
     int 0x13
     jc disk_error
-
-    ; Print 'R' to show reset worked
-    mov ah, 0x0e
-    mov al, 'R'
-    int 0x10
 
     ; Read Stage 2
     xor bx, bx
@@ -43,11 +33,6 @@ start:
 
     int 0x13
     jc disk_error
-
-    ; Print 'L' for loaded
-    mov ah, 0x0e
-    mov al, 'L'
-    int 0x10
 
     sti
     jmp 0x7E00

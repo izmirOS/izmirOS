@@ -2,10 +2,6 @@ bits 16
 org 0x7E00
 
 start:
-    
-    mov ah, 0x0e
-    mov al, '>'
-    int 0x10
 
     mov ah, 0x13
     mov al, 1
