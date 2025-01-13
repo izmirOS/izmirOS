@@ -6,7 +6,7 @@ ASMFLAGS=-f elf32
 CFLAGS=-O2 -g -ffreestanding -m32
 
 # no rtti, no cpp exceptions, no virtual functions
-CXXFLAGS=-O2 -g -ffreestanding -m32 -fno-exceptions -fno-rtti
+CXXFLAGS=-std=c++20 -O2 -g -ffreestanding -m32 -fno-exceptions -fno-rtti
 
 BOOTFLAGS=-f bin
 LDFLAGS=-Ttext=0x1000 -nostdlib -ffreestanding -m32 -Wl,--oformat=binary
