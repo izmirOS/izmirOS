@@ -11,10 +11,10 @@ boot2.bin: boot2.asm
 	nasm -f bin boot2.asm -o boot2.bin -g
 
 # Compile kernel
-kernel: kernel.c linker.ld
-    x86_64-elf-gcc -ffreestanding -m32 -O2 -Wall -Wextra -c kernel.c -o kernel.o
-    x86_64-elf-gcc -T linker.ld -o kernel.elf -ffreestanding -m32 -nostdlib kernel.o -lgcc
-    x86_64-elf-objcopy -O binary kernel.elf kernel.bin
+kernel: kernel.c
+	x86_64-elf-gcc -ffreestanding -Wall -c -m32 kernel.c -o kernel.o
+	x86_64-elf-gcc -ffreestanding -m32 -nostdlib -o kernel.elf -Wl,-m,elf_i386 kernel.o
+	x86_64-elf-objcopy -O binary kernel.elf kernel.bin
 
 # Create disk image
 disk.img: boot.bin boot2.bin kernel
