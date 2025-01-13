@@ -1,6 +1,6 @@
 global _start
 
-[bits 16]
+[bits 32]
 [extern kernel_main]
 
 _start:

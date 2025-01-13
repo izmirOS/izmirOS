@@ -4,10 +4,12 @@
 KERNEL_OFFSET equ 0x1000
 
 mov [BOOT_DRIVE], dl
-call load_boot
-call execute_boot
+call load_kernel
 
-load_boot:
+call switch_to_pm
+jmp $
+
+load_kernel:
 	pusha
 	mov bx, LOADING_BOOT_MSG
 	call print_string
@@ -18,63 +20,55 @@ load_boot:
 	popa
 	ret
 
-execute_boot:
-	mov bx, EXECUTING_BOOT_MSG
-	call print_string
+[bits 32]
+
+begin_pm:
+	;; Check if we can move from Protected Mode to Long Mode
+	;; If something went wrong (detect_lm shouldn't return at all)
+	;; we call execute_kernel in x32 Protected Mode
+	call detect_lm
+	call execute_kernel
+	jmp $
+
+[bits 64]
+
+begin_lm:
+	;; In case, if detect_lm and switch_to_lm works fine, call kernel in x64 mode
+	call execute_kernel
+	jmp $
+
+execute_kernel:
 	call KERNEL_OFFSET
 	jmp $
 
-disk_read:
-	pusha
-	push dx
 
-	mov ah, 0x02
-	mov al, dh
-	mov ch, 0x00
-	mov dh, 0x00
-	mov cl, 0x02
-	int 0x13
+;; we have direct interrupts here
+;; ability to use disk interrupt
+;; and teletype interrupt
+;; provided and only available in
+;; real mode
+%include "boot/realmode/disk.asm"
+%include "boot/realmode/print.asm"
 
-	jc disk_read_error
+;; we have to define a global descriptor table
+;; this provides data and code segment descriptions
+;; for both the kernel and a uspace
+;; we set protected mode then do a far jump 
+;; into kernel code seg
+;; interrupts disabled after this
+%include "boot/protectedmode/gdt.asm"
+%include "boot/protectedmode/switch.asm"
 
-	pop dx
-	cmp dh, al
-	jne disk_read_error
 
-	popa
-	ret
-
-disk_read_error:
-	mov bx, DISK_READ_ERROR_MSG
-	call print_string
-	hlt
-
-print_string:
-	pusha
-
-	.loop:
-	mov al, [bx]
-	cmp al, 0
-	je .ret
-	mov ah, 0x0E
-	int 0x10
-	inc bx
-	jmp .loop
-
-	.ret:
-	mov ah, 0x0E
-	mov al, 0x0A
-	int 0x10
-	mov al, 0x0D
-	int 0x10
-
-	popa
-	ret
+;; detect then
+;; set up 4 level paging
+;; and switch to 64-bit
+%include "boot/longmode/detect.asm"
+%include "boot/longmode/switch.asm"
 
 BOOT_DRIVE: db 0
 LOADING_BOOT_MSG: db "Loading Boot", 0
 EXECUTING_BOOT_MSG: db "Executing Boot", 0
-DISK_READ_ERROR_MSG: db "Disk Error", 0
 
 times 510 - ($ - $$) db 0
 dw 0xAA55
