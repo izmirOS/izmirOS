@@ -5,6 +5,16 @@
 
 extern "C" void kernel_main() {
   vga::terminal term{};
-  /* Newline support is left as an exercise. */
-  term.write("Hello, kernel World!\n", 23);
+  constexpr auto limit = 100;
+  for (auto it = 0; it < limit; it++) {
+    term.write_c_str("Hello, kernel World!\n");
+  }
+  term.scroll_up(5);
+
+  /* constexpr auto limit2 = 2; */
+  /* for (auto it = 0; it < limit2; it++) { */
+  /*   term.write_c_str("Hello, kernel World!\n"); */
+  /* } */
+
+  /* term.scroll_down(5); */
 }

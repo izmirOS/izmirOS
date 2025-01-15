@@ -47,5 +47,9 @@ public:
   void put_entry_at(char c, uint8_t color, size_t x, size_t y);
   void put_char(char c);
   void write(const char *data, size_t size);
+  void write_c_str(const char *str);
+  void move_row(const size_t from, const size_t to);
+  void scroll_up(const size_t by);
+  void scroll_down(const size_t by);
 };
 } // namespace vga

@@ -19,7 +19,6 @@ set_target_properties(kernel_obj PROPERTIES
     COMMENT "Compiling kernel"
 )
 
-
 add_custom_command(
     OUTPUT boot.bin
     COMMAND ${CMAKE_ASM_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR} -f bin ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm -o boot.bin
@@ -48,7 +47,7 @@ add_custom_command(
             kernel_entry.o
             $<TARGET_OBJECTS:kernel_obj>
             -o kernel.bin
-    DEPENDS kernel_entry kernel_obj
+    DEPENDS kernel_entry kernel_obj ${SRC_FILES}
     COMMAND_EXPAND_LISTS
 )
 
