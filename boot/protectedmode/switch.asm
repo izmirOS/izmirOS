@@ -27,6 +27,15 @@ switch_to_pm:
 
 [bits 32]
 
+idt_start:
+    times 256 dq 0   ; 256 empty entries (8 bytes each)
+idt_end:
+
+idt_descriptor:
+    dw idt_end - idt_start - 1  ; limit = size - 1
+    dd idt_start                 ; base address
+
+
 init_pm:
 	;; update all segment registers
 	mov ax, DATA_SEG
@@ -35,6 +44,8 @@ init_pm:
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+
+	lidt [idt_descriptor]
 
 	;; update base and stack pointers
 	mov ebp, 0x90000
