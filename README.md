@@ -13,3 +13,7 @@ make
 ```bash
 qemu-system-i386 -fda ./build/image.bin
 ```
+
+# TODO
+
+- [ ] tss for 64 bit booting
