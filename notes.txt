@@ -1,0 +1,1 @@
+1. We booted the disk from a .bin file from what I see, why .bin and not .img? What is the difference?
