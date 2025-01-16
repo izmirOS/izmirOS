@@ -23,18 +23,53 @@ void to_hex_str(uint64_t value, char *buf) {
   buf[18] = '\0';
 }
 
-void to_hex_str(uint32_t value, char *buf) {
-  const char hex_digits[] = "0123456789ABCDEF";
-  buf[0] = '0';
-  buf[1] = 'x';
-  for (int i = 7; i >= 0; i--) {
-    buf[2 + i] = hex_digits[value & 0xF];
-    value >>= 4;
-  }
-  buf[10] = '\0';
+
+
+typedef struct {
+	uint16_t    isr_low;
+	uint16_t    kernel_cs;
+	uint8_t     reserved;
+	uint8_t     attributes;
+	uint16_t    isr_high;
+} __attribute__((packed)) idt_entry_t;
+
+typedef struct {
+	uint16_t	limit;
+	uint32_t	base;
+} __attribute__((packed)) idtr_t;
+
+__attribute__((aligned(0x10))) static idt_entry_t idt[256];
+
+void idt_set_gate(uint8_t vector, uint32_t isr_addr, uint8_t flags){
+  idt_entry_t entry;
+  entry.kernel_cs = 0x8000;
+  entry.reserved = 0;
+  entry.isr_low = isr_addr & 0xFFFF;
+  entry.isr_low = (isr_addr >> 16) & 0xFFFF;
+  entry.attributes = flags;
+  idt[vector] = entry;
 }
 
+
+
+void idt_init(){
+
+  static idtr_t idtr;
+  idtr.limit = (uint16_t)sizeof(idt_entry_t) * 256 - 1;
+  idtr.base = (uint32_t)&idt[0];
+
+
+  __asm__ volatile ("lidt %0" : : "m"(idtr));
+  __asm__ volatile ("sti");
+}
+
+
+
+
 extern "C" void kernel_main(struct boot_info *info) {
+
+  //idt_init();
+
   vga::terminal term{};
 
   // Original code
