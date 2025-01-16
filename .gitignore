@@ -3,3 +3,6 @@
 *.iso
 
 build/
+
+compile_commands.json
+
