@@ -20,8 +20,8 @@ disk_read:
 	ret
 
 disk_read_error:
-	mov bx, DISK_READ_ERROR_MSG
-	call print_string
+	; mov bx, DISK_READ_ERROR_MSG
+	; call print_string
 	hlt
 
 DISK_READ_ERROR_MSG: db "Disk Error", 0
