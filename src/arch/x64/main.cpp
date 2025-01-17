@@ -1,3 +1,5 @@
+#include "interrupts/handlers.hpp" // not causing boot loop 
+#include "interrupts/idt.hpp" // not causing boot loop 
 #include "kernel/dev/vga.hpp"
 #include <stdbool.h>
 #include <stddef.h>
@@ -23,57 +25,15 @@ void to_hex_str(uint64_t value, char *buf) {
   buf[18] = '\0';
 }
 
-typedef struct {
-  uint16_t isr_low;
-  uint16_t kernel_cs;
-  uint8_t reserved;
-  uint8_t attributes;
-  uint16_t isr_high;
-} __attribute__((packed)) idt_entry_t;
-
-typedef struct {
-  uint16_t limit;
-  uint32_t base;
-} __attribute__((packed)) idtr_t;
-
-__attribute__((aligned(0x10))) static idt_entry_t idt[256];
-
-void idt_set_gate(uint8_t vector, uint32_t isr_addr, uint8_t flags) {
-  idt_entry_t entry;
-  entry.kernel_cs = 0x8000;
-  entry.reserved = 0;
-  entry.isr_low = isr_addr & 0xFFFF;
-  entry.isr_low = (isr_addr >> 16) & 0xFFFF;
-  entry.attributes = flags;
-  idt[vector] = entry;
-}
-
-void idt_init() {
-
-  static idtr_t idtr;
-  idtr.limit = (uint16_t)sizeof(idt_entry_t) * 256 - 1;
-  idtr.base = (uint32_t)&idt[0];
-
-  __asm__ volatile("lidt %0" : : "m"(idtr));
-  __asm__ volatile("sti");
-}
-
-/* mov ax, 0x??  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths
- * entry in your GDT describes your TSS) */
-/* ltr ax        ;The actual load */
 
 extern "C" void kernel_main(struct boot_info *info) {
-
-  // idt_init();
-
+  /* mov ax, 0x??  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths
+ * entry in your GDT describes your TSS) */
+/* ltr ax        ;The actual load */
+  
   vga::terminal term{};
-
-  // Original code
-  constexpr auto limit = 100;
-  for (auto it = 0; it < limit; it++) {
-    term.write_c_str("Hello, kernel World!\n");
-  }
-  term.scroll_up(5);
+  interrupt_handlers::init_handlers(&term);
+  idt_init();
 
   // Print boot info
   char hex_buf[20]; // Buffer for hex string conversion
