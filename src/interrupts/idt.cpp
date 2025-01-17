@@ -19,5 +19,5 @@ extern "C" void idt_init() {
   idtr.base = (uint32_t)&idt[0];
   idt_set_gate(0, (uint32_t)isr0, 0x8E);
   __asm__ volatile("lidt %0" : : "m"(idtr));
-  // __asm__ volatile("sti");
+  /* __asm__ volatile("sti"); */
 }

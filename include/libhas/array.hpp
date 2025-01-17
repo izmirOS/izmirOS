@@ -1,5 +1,6 @@
 // libcpp array implementation
 // aggregate value initialization works out of the box
+#pragma once
 #include <stddef.h>
 
 template <typename T, size_t N> struct array {

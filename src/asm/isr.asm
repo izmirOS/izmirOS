@@ -4,7 +4,8 @@ section .text
 
 global isr0
 global isr33
-extern handle_isr0'
+extern handle_isr0
+extern handle_isr33
 
 
 ; When CPU calls int handlers pushes EFLAGS -> CS -> EIP
