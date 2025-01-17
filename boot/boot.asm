@@ -7,7 +7,8 @@ mov [BOOT_DRIVE], dl
 call load_kernel
 
 call switch_to_pm
-
+    
+; no memory initially
 load_kernel:
 	pusha
 	; mov bx, LOADING_BOOT_MSG

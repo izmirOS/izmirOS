@@ -25,8 +25,12 @@ void to_hex_str(uint64_t value, char *buf) {
   buf[18] = '\0';
 }
 
-extern "C" void kernel_main(struct boot_info *info) {
 
+extern "C" void kernel_main(struct boot_info *info) {
+  /* mov ax, 0x??  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths
+ * entry in your GDT describes your TSS) */
+/* ltr ax        ;The actual load */
+  
   vga::terminal term{};
   interrupt_handlers::init_handlers(&term);
   idt_init();
