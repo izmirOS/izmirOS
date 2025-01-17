@@ -1,5 +1,5 @@
-#include "interrupts/handlers.hpp"
-#include "interrupts/idt.hpp"
+#include "interrupts/handlers.hpp" // not causing boot loop 
+#include "interrupts/idt.hpp" // not causing boot loop 
 #include "kernel/dev/vga.hpp"
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,13 +30,6 @@ extern "C" void kernel_main(struct boot_info *info) {
   vga::terminal term{};
   interrupt_handlers::init_handlers(&term);
   idt_init();
-
-  // Original code
-  constexpr auto limit = 100;
-  for (auto it = 0; it < limit; it++) {
-    term.write_c_str("Hello, kernel World!\n");
-  }
-  term.scroll_up(5);
 
   // Print boot info
   char hex_buf[20]; // Buffer for hex string conversion
