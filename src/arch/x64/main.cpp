@@ -1,5 +1,5 @@
-#include "interrupts/handlers.hpp"
-#include "interrupts/idt.hpp"
+/* #include "interrupts/handlers.hpp" */
+/* #include "interrupts/idt.hpp" */
 #include "kernel/dev/vga.hpp"
 #include <stdbool.h>
 #include <stddef.h>
@@ -28,8 +28,8 @@ void to_hex_str(uint64_t value, char *buf) {
 extern "C" void kernel_main(struct boot_info *info) {
 
   vga::terminal term{};
-  interrupt_handlers::init_handlers(&term);
-  idt_init();
+  /* interrupt_handlers::init_handlers(&term); */
+  /* idt_init(); */
 
   // Original code
   constexpr auto limit = 100;
