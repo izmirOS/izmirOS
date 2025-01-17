@@ -1,8 +1,11 @@
-bits [32]
+[bits 32]
+
+section .text
+
 global isr0
 extern handle_isr0
 
-// When CPU calls int handlers pushes EFLAGS -> CS -> EIP
+; When CPU calls int handlers pushes EFLAGS -> CS -> EIP
 
 isr0:
     pushad

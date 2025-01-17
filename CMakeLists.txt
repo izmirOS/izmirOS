@@ -6,7 +6,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(izmirOS)
 
+enable_language(ASM_NASM)
+
 add_compile_options(-Wall -Wextra)
+
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_library(kernel_obj OBJECT ${SRC_FILES})
 target_include_directories(kernel_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -21,14 +24,14 @@ set_target_properties(kernel_obj PROPERTIES
 
 add_custom_command(
     OUTPUT boot.bin
-    COMMAND ${CMAKE_ASM_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR} -f bin ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm -o boot.bin
+    COMMAND ${CMAKE_ASM_NASM_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR} -f bin ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm -o boot.bin
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm
     COMMENT "Assembling boot.asm to boot.bin"
 )
 
 add_custom_command(
     OUTPUT kernel_entry.o
-    COMMAND ${CMAKE_ASM_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR} -f elf32 ${CMAKE_CURRENT_SOURCE_DIR}/boot/kernel_entry.asm -o kernel_entry.o
+    COMMAND ${CMAKE_ASM_NASM_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR} -f elf32 ${CMAKE_CURRENT_SOURCE_DIR}/boot/kernel_entry.asm -o kernel_entry.o
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/boot/kernel_entry.asm
     COMMENT "Assembling kernel_entry.asm to kernel_entry.o"
 )
@@ -36,9 +39,12 @@ add_custom_command(
 add_custom_target(boot_bin ALL DEPENDS boot.bin)
 add_custom_target(kernel_entry ALL DEPENDS kernel_entry.o)
 
+file(GLOB_RECURSE ASM_FILES src/*.asm)
+add_library(asm_obj OBJECT ${ASM_FILES})
+
 add_custom_command(
     OUTPUT kernel.bin
-    COMMAND /opt/homebrew/bin/i386-elf-gcc
+    COMMAND ${CMAKE_C_COMPILER}
             -Ttext=0x1000
             -nostdlib
             -ffreestanding
@@ -46,6 +52,7 @@ add_custom_command(
             -Wl,--oformat=binary
             kernel_entry.o
             $<TARGET_OBJECTS:kernel_obj>
+            $<TARGET_OBJECTS:asm_obj>
             -o kernel.bin
     DEPENDS kernel_entry kernel_obj ${SRC_FILES}
     COMMAND_EXPAND_LISTS
