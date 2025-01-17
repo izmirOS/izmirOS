@@ -25,6 +25,7 @@ void to_hex_str(uint64_t value, char *buf) {
   buf[18] = '\0';
 }
 
+
 extern "C" void kernel_main(struct boot_info *info) {
 
 
