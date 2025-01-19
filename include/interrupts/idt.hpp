@@ -16,5 +16,6 @@ typedef struct {
 } __attribute__((packed)) idtr_t;
 
 void idt_init();
+void configure_pic();
 void idt_set_gate(uint8_t vector, uint32_t isr_addr, uint8_t flags);
 }

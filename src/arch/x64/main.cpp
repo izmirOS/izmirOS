@@ -1,11 +1,12 @@
-#include "interrupts/handlers.hpp" // not causing boot loop 
-#include "interrupts/idt.hpp" // not causing boot loop 
+#include "interrupts/handlers.hpp" // not causing boot loop
+#include "interrupts/idt.hpp"      // not causing boot loop
 #include "kernel/dev/vga.hpp"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-struct __attribute__((packed)) boot_info {
+struct __attribute__((packed)) boot_info
+{
   uint64_t cr3;       // offset 0  - PML4
   uint64_t pdpt_phys; // offset 8  - PDPT
   uint64_t pt_phys;   // offset 16 - PT
@@ -13,27 +14,30 @@ struct __attribute__((packed)) boot_info {
   uint32_t boot_mode; // offset 32 for boot mode
 };
 
-void to_hex_str(uint64_t value, char *buf) {
+void to_hex_str(uint64_t value, char *buf)
+{
   const char hex_digits[] = "0123456789ABCDEF";
   buf[0] = '0';
   buf[1] = 'x';
 
-  for (int i = 15; i >= 0; i--) {
+  for (int i = 15; i >= 0; i--)
+  {
     buf[2 + i] = hex_digits[value & 0xF];
     value >>= 4;
   }
   buf[18] = '\0';
 }
 
-
-extern "C" void kernel_main(struct boot_info *info) {
+extern "C" void kernel_main(struct boot_info *info)
+{
   /* mov ax, 0x??  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths
- * entry in your GDT describes your TSS) */
-/* ltr ax        ;The actual load */
-  
+   * entry in your GDT describes your TSS) */
+  /* ltr ax        ;The actual load */
+
   vga::terminal term{};
   interrupt_handlers::init_handlers(&term);
   idt_init();
+  configure_pic();
 
   // Print boot info
   char hex_buf[20]; // Buffer for hex string conversion
@@ -72,4 +76,8 @@ extern "C" void kernel_main(struct boot_info *info) {
   to_hex_str(offsetof(struct boot_info, boot_mode), offset_buf);
   term.write_c_str(offset_buf);
   term.write_c_str("\n");
+
+  while (1){
+    __asm__ volatile("hlt");
+  }
 }
