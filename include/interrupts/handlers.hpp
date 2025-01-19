@@ -233,12 +233,10 @@ extern "C" void handle_isr8() {
 
 extern "C" void handle_isr33() {
   if (term_instance) {
-    term_instance->write_c_str("Keyboard handler triggered!\n");
     uint8_t scancode = inb(0x60);
     char buf[2] = { scancode_s2_to_ascii[scancode], '\0' };
     term_instance->write_c_str(buf);
   }
   outb(0x20, 0x20);
-  KILL_PROCESS();
 }
 } // namespace interrupt_handlers
