@@ -274,40 +274,22 @@ void itoa_custom(int value, char* str, int base) {
     }
 }
 
+void wait_for_controller_ready() {
+    while (inb(0x64) & 0x02) {
+        // Wait until the input buffer is clear
+    }
+}
+
 
 extern "C" void init_keyboard(){
     
-    
-    outb(0x64, 0xF5); // disable keyboard
-    io_wait();
-    io_wait();
+    wait_for_controller_ready();
+    outb(0x64, 0xAD);
 
-    term_instance->write_c_str("Current scancode set: ");
+    wait_for_controller_ready();
+    outb(0x64, 0xAE);
 
-    /*
-
-    outb(0x64, 0xF0);
-    io_wait();
-    io_wait();
-
-    outb(0x60, 0x00); // query for scan code set
-    io_wait();
-    io_wait();
-
-    uint8_t set = inb(0x60);
-    io_wait();
-    io_wait();
-    char buf[20];
-    itoa_custom(set, buf, 10);  // Convert the scancode set (int) to a string
-    term_instance->write_c_str("Current scancode set: ");
-    term_instance->write_c_str(buf);  // Display the scancode set
-    term_instance->write_c_str("\n");
-
-    */
-
-
-
-    outb(0x64, 0xF4); // enable keyboard
+    term_instance->write_c_str("Keyboard initialized.\n");
 
 }
 
