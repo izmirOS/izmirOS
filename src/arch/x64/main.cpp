@@ -77,6 +77,9 @@ extern "C" void kernel_main(struct boot_info *info)
   term.write_c_str(offset_buf);
   term.write_c_str("\n");
 
+  interrupt_handlers::init_keyboard();
+
+
   while (1){
     __asm__ volatile("hlt");
   }

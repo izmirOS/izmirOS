@@ -40,8 +40,6 @@ static inline void outb(uint16_t port, uint8_t val)
   __asm__ volatile ( "outb %b0, %w1" : : "a"(val), "Nd"(port) : "memory");
 }
 
-
-
 static const unsigned char scancode_s2_to_ascii[0xFF] = {
     0,        // 0x00
     0,        // 0x01
@@ -174,8 +172,6 @@ static const unsigned char scancode_s2_to_ascii[0xFF] = {
 };
 
 
-
-
 void to_hex_str(uint64_t value, char *buf) {
   const char hex_digits[] = "0123456789ABCDEF";
   buf[0] = '0';
@@ -230,6 +226,90 @@ extern "C" void handle_isr8() {
   KILL_PROCESS();
 }
 
+static inline void io_wait(void)
+{
+    outb(0x80, 0);
+}
+
+void itoa_custom(int value, char* str, int base) {
+    int i = 0;
+    bool isNegative = false;
+
+    // Handle 0 explicitly, otherwise empty string is printed
+    if (value == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return;
+    }
+
+    // Handle negative numbers only if the base is 10
+    if (value < 0 && base == 10) {
+        isNegative = true;
+        value = -value;
+    }
+
+    // Process individual digits
+    while (value != 0) {
+        int rem = value % base;
+        str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0'; // For base > 10, we use 'a' to 'f'
+        value = value / base;
+    }
+
+    // Append negative sign for negative numbers
+    if (isNegative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0'; // Null-terminate string
+
+    // Reverse the string
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+
+extern "C" void init_keyboard(){
+    
+    
+    outb(0x64, 0xF5); // disable keyboard
+    io_wait();
+    io_wait();
+
+    term_instance->write_c_str("Current scancode set: ");
+
+    /*
+
+    outb(0x64, 0xF0);
+    io_wait();
+    io_wait();
+
+    outb(0x60, 0x00); // query for scan code set
+    io_wait();
+    io_wait();
+
+    uint8_t set = inb(0x60);
+    io_wait();
+    io_wait();
+    char buf[20];
+    itoa_custom(set, buf, 10);  // Convert the scancode set (int) to a string
+    term_instance->write_c_str("Current scancode set: ");
+    term_instance->write_c_str(buf);  // Display the scancode set
+    term_instance->write_c_str("\n");
+
+    */
+
+
+
+    outb(0x64, 0xF4); // enable keyboard
+
+}
 
 extern "C" void handle_isr33() {
   if (term_instance) {
