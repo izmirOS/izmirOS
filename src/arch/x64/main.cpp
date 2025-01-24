@@ -30,6 +30,7 @@ void to_hex_str(uint64_t value, char *buf)
 
 extern "C" void kernel_main(struct boot_info *info)
 {
+  // https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf
   /* mov ax, 0x??  ;The descriptor of the TSS in the GDT (e.g. 0x28 if the sixths
    * entry in your GDT describes your TSS) */
   /* ltr ax        ;The actual load */
@@ -78,6 +79,7 @@ extern "C" void kernel_main(struct boot_info *info)
   term.write_c_str("\n");
 
   interrupt_handlers::init_keyboard();
+  interrupt_handlers::read_rtc();
 
 
   while (1){

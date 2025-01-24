@@ -9,6 +9,11 @@
       ;                                                                        \
   }
 
+#define CMOS_ADDRESS 0x70
+#define CMOS_READ 0x71
+
+
+
 // this should be pulled into a class instance and cpp file
 // for these:
 /* ├╴W Variable 'term_instance' defined in a header file; variable definitions
@@ -276,11 +281,11 @@ void itoa_custom(int value, char* str, int base) {
 
 void wait_for_controller_ready() {
     while (inb(0x64) & 0x02) {
-        // Wait until the input buffer is clear
     }
 }
 
-
+// https://wiki.osdev.org/%228042%22_PS/2_Controller#Command_Register
+// https://www.eecg.utoronto.ca/~pc/courses/241/DE1_SoC_cores/ps2/ps2.html
 extern "C" void init_keyboard(){
     
     wait_for_controller_ready();
@@ -301,4 +306,58 @@ extern "C" void handle_isr33() {
   }
   outb(0x20, 0x20);
 }
+
+unsigned char get_RTC_register(int reg) {
+      outb(CMOS_ADDRESS, reg);
+      return inb(CMOS_READ);
+}
+
+unsigned char BCD_to_binary(unsigned char bcd) {
+    return ((bcd & 0xF0) >> 4) * 10 + (bcd & 0x0F);
+}
+
+extern "C" void read_rtc(){
+
+  unsigned char hour = BCD_to_binary(get_RTC_register(0x04));
+  unsigned char last_minute = BCD_to_binary(get_RTC_register(0x02));
+  unsigned char last_second = BCD_to_binary(get_RTC_register(0x00));
+
+
+
+  
+  unsigned char day_of_month = BCD_to_binary(get_RTC_register(0x07));
+  unsigned char month = BCD_to_binary(get_RTC_register(0x08));
+  unsigned char year = BCD_to_binary(get_RTC_register(0x09));
+
+ if (term_instance) {
+
+        char buffer[8];
+
+        itoa_custom(hour, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str(":");
+
+        itoa_custom(last_minute, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str(":");
+
+        itoa_custom(last_second, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str(" ");
+
+
+        itoa_custom(month, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str("/");
+
+        itoa_custom(day_of_month, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str("/");
+
+        itoa_custom(year, buffer, 10);
+        term_instance->write_c_str(buffer);
+        term_instance->write_c_str("\n");
+    }
+}
+
 } // namespace interrupt_handlers
