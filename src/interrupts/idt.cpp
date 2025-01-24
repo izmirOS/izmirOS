@@ -16,6 +16,7 @@ extern "C" void isr5();
 extern "C" void isr6();
 extern "C" void isr7();
 extern "C" void isr8();
+extern "C" void isr32();
 extern "C" void isr33();
 
 extern "C" void idt_set_gate(uint8_t vector, uint32_t isr_addr, uint8_t flags) {
@@ -65,6 +66,9 @@ extern "C" void configure_pic(){
   outb(0x21, 0x01);
   outb(0xA1, 0x00);
 
+  // Unmask IRQ0
+  outb(MASTER_DATA, inb(MASTER_DATA) & ~(1 << 0));
+
 
 }
 
@@ -78,6 +82,7 @@ extern "C" void idt_init() {
   idt_set_gate(6, (uint32_t)isr6, 0x8E);
   idt_set_gate(7, (uint32_t)isr7, 0x8E);
   idt_set_gate(8, (uint32_t)isr8, 0x8E);
+  idt_set_gate(32, (uint32_t)isr32, 0x8E);
   idt_set_gate(33, (uint32_t)isr33, 0x8E);
   __asm__ volatile("lidt %0" : : "m"(idtr));
   __asm__ volatile("sti");

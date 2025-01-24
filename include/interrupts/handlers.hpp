@@ -298,6 +298,20 @@ extern "C" void init_keyboard(){
 
 }
 
+extern "C" void init_pit(uint32_t freq){
+  uint32_t divisor = 1193182 / freq;
+  outb(0x43, 0x36);
+  outb(0x40, divisor & 0xFF);
+  outb(0x40, divisor >> 8);
+}
+
+extern "C" void handle_isr32(){
+  // save process
+  term_instance->write_c_str("Handling PIT.\n");
+  // start new process
+  outb(0x20, 0x20);
+}
+
 extern "C" void handle_isr33() {
   if (term_instance) {
     uint8_t scancode = inb(0x60);
@@ -322,9 +336,6 @@ extern "C" void read_rtc(){
   unsigned char last_minute = BCD_to_binary(get_RTC_register(0x02));
   unsigned char last_second = BCD_to_binary(get_RTC_register(0x00));
 
-
-
-  
   unsigned char day_of_month = BCD_to_binary(get_RTC_register(0x07));
   unsigned char month = BCD_to_binary(get_RTC_register(0x08));
   unsigned char year = BCD_to_binary(get_RTC_register(0x09));

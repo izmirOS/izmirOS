@@ -8,6 +8,7 @@ global isr5
 global isr6
 global isr7
 global isr8
+global isr32
 global isr33
 extern handle_isr0
 extern handle_isr1
@@ -15,6 +16,7 @@ extern handle_isr5
 extern handle_isr6
 extern handle_isr7
 extern handle_isr8
+extern handle_isr32
 extern handle_isr33
 
 
@@ -116,6 +118,24 @@ isr8:
     popad          ; Restore registers
     iret           ; Return (pops EIP, CS, and EFLAGS)
 
+
+isr32:
+     pusha
+     push ds
+     push es
+     push fs
+     push gs
+     mov eax,0x10    ; Data segment
+     mov ds,eax
+     mov es,eax
+     cld
+     call handle_isr32
+     pop gs
+     pop fs
+     pop es
+     pop ds
+     popa
+     iret
 isr33:
      pusha
      push ds
