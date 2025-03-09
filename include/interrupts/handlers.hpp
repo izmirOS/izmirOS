@@ -231,6 +231,46 @@ extern "C" void handle_isr8() {
   KILL_PROCESS();
 }
 
+typedef struct {
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // From pusha
+    uint32_t error_code;                            // Pushed by CPU
+    uint32_t eip, cs, eflags, user_esp, user_ss;    // Pushed by CPU during interrupt
+} registers_t;
+
+extern "C" void handle_isr14(registers_t* regs) {
+  if (term_instance) {
+
+    int present = regs->error_code & 0x1;
+    int write = regs->error_code & 0x2;
+    int user = regs->error_code & 0x4;
+
+    term_instance->write_c_str("PAGE FAULT!\n");
+
+    term_instance->write_c_str("Fault caused by: ");
+    if (!present) {
+      term_instance->write_c_str("Non-present page\n");
+    } else {
+      term_instance->write_c_str("Protection violation\n");
+    }
+
+    term_instance->write_c_str("Access type: ");
+    if (write) {
+      term_instance->write_c_str("Write\n");
+    } else {
+      term_instance->write_c_str("Read\n");
+    }
+
+    term_instance->write_c_str("Processor mode: ");
+    if (user) {
+      term_instance->write_c_str("User mode\n");
+    } else {
+      term_instance->write_c_str("Kernel mode\n");
+    }
+
+  }
+  KILL_PROCESS();
+}
+
 static inline void io_wait(void)
 {
     outb(0x80, 0);
@@ -307,7 +347,7 @@ extern "C" void init_pit(uint32_t freq){
 
 extern "C" void handle_isr32(){
   // save process
-  term_instance->write_c_str("Handling PIT.\n");
+  // term_instance->write_c_str("Handling PIT.\n");
   // start new process
   outb(0x20, 0x20);
 }

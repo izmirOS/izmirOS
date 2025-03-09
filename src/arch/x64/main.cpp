@@ -28,6 +28,8 @@ void to_hex_str(uint64_t value, char *buf)
   buf[18] = '\0';
 }
 
+extern "C" void enable_32bit_paging();
+
 extern "C" void kernel_main(struct boot_info *info)
 {
   // https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf
@@ -39,6 +41,19 @@ extern "C" void kernel_main(struct boot_info *info)
   interrupt_handlers::init_handlers(&term);
   idt_init();
   configure_pic();
+  enable_32bit_paging();
+  uint32_t *test_addr = (uint32_t*)0x500000;
+  *test_addr = 0xDEADBEEF;
+  if (*test_addr == 0xDEADBEEF) {
+    term.write_c_str("Paging test passed\n");
+  }
+
+  term.write_c_str("CR2: ");
+
+
+
+
+
 
   // Print boot info
   char hex_buf[20]; // Buffer for hex string conversion
@@ -48,16 +63,6 @@ extern "C" void kernel_main(struct boot_info *info)
 
   term.write_c_str("CR3: ");
   to_hex_str(info->cr3, hex_buf);
-  term.write_c_str(hex_buf);
-  term.write_c_str("\n");
-
-  term.write_c_str("PDPT Physical: ");
-  to_hex_str(info->pdpt_phys, hex_buf);
-  term.write_c_str(hex_buf);
-  term.write_c_str("\n");
-
-  term.write_c_str("PT Physical: ");
-  to_hex_str(info->pt_phys, hex_buf);
   term.write_c_str(hex_buf);
   term.write_c_str("\n");
 
