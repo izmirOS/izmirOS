@@ -38,7 +38,6 @@ begin_pm:
     
     mov edi, BOOT_INFO_ADDR
     mov DWORD [edi + 0x20], BOOT_MODE_32
-    
     call execute_kernel
 
 [bits 64]
