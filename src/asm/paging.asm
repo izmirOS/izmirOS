@@ -15,7 +15,7 @@ enable_32bit_paging:
     mov cr3, eax
 
     mov eax, cr0
-    or eax, 0x80000001
+    or eax, 0x80000000
     mov cr0, eax
     
     popad

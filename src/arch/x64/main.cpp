@@ -157,11 +157,21 @@ extern "C" void kernel_main(struct boot_info *info)
   idt_init();
   configure_pic();
   enable_32bit_paging();
+
+  // Test first 4KB
+    /*
+  uint32_t *test_addr_1 = (uint32_t*)0x100000;
+  *test_addr_1 = 0xDEADBEEF;
+    if (*test_addr_1 == 0xDEADBEEF){
+ term.write_c_str("Paging test 1 passed\n");
+
+    }
+
   uint32_t *test_addr = (uint32_t*)0x500000;
   *test_addr = 0xDEADBEEF;
   if (*test_addr == 0xDEADBEEF) {
-    term.write_c_str("Paging test passed\n");
-  }
+    term.write_c_str("Paging test 2 passed\n");
+  }*/
 
 
 

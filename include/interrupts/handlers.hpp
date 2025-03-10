@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../kernel/dev/vga.hpp"
+#include "../include/paging/paging.hpp"
 
 #define KILL_PROCESS()                                                         \
   {                                                                            \
@@ -238,37 +239,10 @@ typedef struct {
 } registers_t;
 
 extern "C" void handle_isr14(registers_t* regs) {
-  if (term_instance) {
 
-    int present = regs->error_code & 0x1;
-    int write = regs->error_code & 0x2;
-    int user = regs->error_code & 0x4;
-
-    term_instance->write_c_str("PAGE FAULT!\n");
-
-    term_instance->write_c_str("Fault caused by: ");
-    if (!present) {
-      term_instance->write_c_str("Non-present page\n");
-    } else {
-      term_instance->write_c_str("Protection violation\n");
-    }
-
-    term_instance->write_c_str("Access type: ");
-    if (write) {
-      term_instance->write_c_str("Write\n");
-    } else {
-      term_instance->write_c_str("Read\n");
-    }
-
-    term_instance->write_c_str("Processor mode: ");
-    if (user) {
-      term_instance->write_c_str("User mode\n");
-    } else {
-      term_instance->write_c_str("Kernel mode\n");
-    }
-
-  }
-  KILL_PROCESS();
+  uint32_t faulting_addr;
+  asm volatile("mov %%cr2, %0" : "=r"(faulting_addr));
+  handle_page_fault(faulting_addr);  
 }
 
 static inline void io_wait(void)
