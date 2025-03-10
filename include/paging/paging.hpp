@@ -8,8 +8,6 @@ extern uint32_t page_table_1[1024];
 #define FRAME_SIZE 4096
 #define PAGE_SIZE 4096
 
-extern uint8_t page_frame_bitmap[NUM_PAGE_FRAMES / 8];
-
 uint32_t find_free_frame();
 void set_bitmap_frame(uint8_t* bitmap, uint32_t frame_number);
 

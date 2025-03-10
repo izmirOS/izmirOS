@@ -4,7 +4,8 @@
 __attribute__((aligned(4096))) uint32_t page_directory[1024];
 __attribute__((aligned(4096))) uint32_t page_table_0[1024];
 __attribute__((aligned(4096))) uint32_t page_table_1[1024]; // Add more page tables
-uint8_t page_frame_bitmap[NUM_PAGE_FRAMES / 8];
+__attribute__((aligned(NUM_PAGE_FRAMES / 2))) uint8_t page_frame_bitmap[NUM_PAGE_FRAMES / 8];
+
 uint32_t find_first_free_frame(){
 
     for (int i = 0; i < NUM_PAGE_FRAMES / 8; i++){
