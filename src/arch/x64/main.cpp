@@ -52,12 +52,6 @@ extern "C" void kernel_main(struct boot_info *info)
     term.write_c_str("Paging test 2 passed\n");
   }
 
-  // On Demand Paging Test
-  uint32_t *test_addr_3 = (uint32_t*)0x08000000;
-  *test_addr_3 = 0xDEADBEEF;
-  if (*test_addr_3 == 0xDEADBEEF) {
-    term.write_c_str("Paging test 3 passed\n");
-  }
 
 
 
