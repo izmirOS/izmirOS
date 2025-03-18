@@ -239,7 +239,7 @@ typedef struct {
 } registers_t;
 
 extern "C" void handle_isr14(registers_t* regs) {
-
+  
   uint32_t faulting_addr;
   asm volatile("mov %%cr2, %0" : "=r"(faulting_addr));
   handle_page_fault(faulting_addr);  
