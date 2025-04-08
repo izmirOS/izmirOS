@@ -1,6 +1,10 @@
 #include "kernel/dev/vga.hpp"
 
 namespace vga {
+ static const char* level_strings[] = {
+        "INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"
+    };
+
 terminal::terminal() {
   terminal_row = 0;
   terminal_column = 0;
@@ -89,6 +93,14 @@ void terminal::put_char(char c) {
 void terminal::write(const char *data, size_t size) {
   for (size_t i = 0; i < size; i++)
     put_char(data[i]);
+}
+
+void terminal::log(LogType level, const char *str){
+  write_c_str("[");
+  write_c_str(level_strings[level]);
+  write_c_str("]: ");
+  write_c_str(str);
+  write_c_str("\n");
 }
 
 void terminal::write_c_str(const char *str) {

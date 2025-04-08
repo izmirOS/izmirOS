@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../kernel/dev/vga.hpp"
+#include "../shell/shell.hpp"
 #include "../include/paging/paging.hpp"
 
 #define KILL_PROCESS()                                                         \
@@ -239,7 +240,7 @@ typedef struct {
 } registers_t;
 
 extern "C" void handle_isr14(registers_t* regs) {
-
+  
   uint32_t faulting_addr;
   asm volatile("mov %%cr2, %0" : "=r"(faulting_addr));
   handle_page_fault(faulting_addr);  
@@ -330,7 +331,8 @@ extern "C" void handle_isr33() {
   if (term_instance) {
     uint8_t scancode = inb(0x60);
     char buf[2] = { scancode_s2_to_ascii[scancode], '\0' };
-    term_instance->write_c_str(buf);
+    shell::process_keypress(scancode);
+//    term_instance->write_c_str(buf);
   }
   outb(0x20, 0x20);
 }
