@@ -1,6 +1,7 @@
 #include "interrupts/handlers.hpp" // not causing boot loop
 #include "interrupts/idt.hpp"      // not causing boot loop
 #include "kernel/dev/vga.hpp"
+#include "shell/shell.hpp"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -34,39 +35,28 @@ extern "C" void kernel_main(struct boot_info *info)
 {
   vga::terminal term{};
   interrupt_handlers::init_handlers(&term);
+  shell::init_shell(&term);
   idt_init();
   configure_pic();
   enable_32bit_paging();
+   uint32_t *test_addr_1 = (uint32_t*)0x800000;
 
-  // Test first 4KB
-
-  uint32_t *test_addr_1 = (uint32_t*)0x100000;
+ 
   *test_addr_1 = 0xDEADBEEF;
-  if (*test_addr_1 == 0xDEADBEEF){
-    term.write_c_str("Paging test 1 passed\n");
-  }
+if (*test_addr_1 == 0xDEADBEEF){
 
-  uint32_t *test_addr_2 = (uint32_t*)0x500000;
-  *test_addr_2 = 0xDEADBEEF;
-  if (*test_addr_2 == 0xDEADBEEF) {
-    term.write_c_str("Paging test 2 passed\n");
-  }
-
-  // On Demand Paging Test
-    uint32_t *test_addr_3 = (uint32_t*)0x08000000;
-  *test_addr_3 = 0xDEADBEEF;
-  if (*test_addr_3 == 0xDEADBEEF) {
-    term.write_c_str("Paging test 3 passed\n");
-  }
   
 
+    term.write_c_str("Paging test 1 passed\n");
+ 
 
+  }
 
 
   // Print boot info
   char hex_buf[20]; // Buffer for hex string conversion
 
-  term.write_c_str("\nBoot Info:\n");
+  term.log(vga::INFO, "\nBoot Info:\n");
   term.write_c_str("-----------------\n");
 
   term.write_c_str("CR3: ");
@@ -93,6 +83,8 @@ extern "C" void kernel_main(struct boot_info *info)
 
   interrupt_handlers::init_keyboard();
   interrupt_handlers::read_rtc();
+
+
 
 
   while (1){
