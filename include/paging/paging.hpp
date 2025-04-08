@@ -17,6 +17,8 @@ uint32_t allocate_page();
 void handle_page_table_fault(uint32_t virt_addr);
 void handle_page_fault(uint32_t virt_addr);
 
+uint32_t* create_page_directory();
+
 void memset(void *b, int value, int size);
 
 extern "C" void init_paging_structures(void);

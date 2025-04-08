@@ -6,6 +6,14 @@ __attribute__((aligned(4096))) uint32_t page_table_0[1024];
 __attribute__((aligned(4096))) uint32_t page_table_1[1024]; // Add more page tables
 __attribute__((aligned(NUM_PAGE_FRAMES / 2))) uint8_t page_frame_bitmap[NUM_PAGE_FRAMES / 8];
 
+uint32_t* create_page_directory(){
+    uint32_t pd_frame = find_free_frame();
+    set_bitmap_frame(page_frame_bitmap, pd_frame);
+    uint32_t* new_page_dir = (uint32_t*)(pd_frame * FRAME_SIZE);
+
+    new_page_dir[1023] = (uint32_t)new_page_dir | 0x3;
+    return new_page_dir;
+}
 
 uint32_t find_first_free_frame(){
 

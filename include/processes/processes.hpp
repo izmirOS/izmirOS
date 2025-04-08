@@ -1,84 +1,82 @@
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <paging/paging.hpp>
 
-#define SUCCESS 1
-#define ERROR -1
 
-namespace processes
-{
+uint8_t __attribute__((packed)) tid_bitmap[1024];
+enum TaskState {
+    TASK_RUNNING = 0,
+    TASK_READY = 1,
+    TASK_BLOCKED = 2,
+    TASK_STOPPED = 3
+};
 
-    enum PROCESS_STATE
-    {
-        RUNNING = 0,
-        READY = 1,
-        BLOCKED = 2,
-    };
+struct context {
+    uint32_t eax, ebx, ecx, edx;
+    uint32_t esi, edi, ebp, esp;
+    uint32_t eip;
+    uint32_t eflags;
+    uint32_t cs, ds, es, fs, gs, ss;
+};
 
-    struct PCB
-    {
-        uint32_t pid;          // Process ID
-        PROCESS_STATE state;   // Process state
-        uint32_t registers[8]; // General-purpose registers (EAX, EBX, etc.)
-        uint32_t eip;          // Instruction pointer
-        uint32_t esp;          // Stack pointer
-        uint32_t ebp;          // Base pointer
-    };
+struct task_struct {
+    uint32_t tid;
+    uint32_t time_started; 
+    TaskState state;
+    void* page_directory;
+    struct context* context;
+};
 
-    constexpr int max_processes = 16;
-    PCB process_table[MAX_PROCESSES];
+struct task_struct* task_table[8192];
 
-    uint8_t pid_bitmap[max_processes / 2] = {0};
+int update_cr3(struct task_struct* new_task) {
+    uint32_t pd_addr = (uint32_t)new_task->page_directory;
+    __asm__ __volatile__("mov %0, %%cr3"
+        :                              
+        : "r"(pd_addr)                
+        : "memory");                   
+    return 0;
+}
 
-    uint32_t clear_bitmap(uint32_t pid)
-    {
-        if (pid > max_processes)
-        {
-            return ERROR;
+int save_context();
+
+void free_tid(int tid) {
+    if (tid < 0 || tid >= 1024 * 8) {
+        return;     }
+    
+    int byte_index = tid / 8;
+    int bit_index = tid % 8;
+    
+    tid_bitmap[byte_index] &= ~(1 << bit_index);
+}
+
+int find_next_free_tid() {
+    for (int byte_index = 0; byte_index < 1024; byte_index++) {
+        if (tid_bitmap[byte_index] == 0xFF) {
+            continue;
         }
-        pid_bitmap[pid / 32] &= ~(1 << (pid % 32));
-
-        return SUCCESS;
-    }
-
-    uint32_t add_to_bitmap()
-    {
-        for (size_t i = 0; i < max_processes / 2; i++)
-        {
-            if (!(pid_bitmap[i / 32] & (1 << (i % 32))))
-            {
-                pid_bitmap[i / 32] |= (1 << (i % 32));
-                return i;
+        
+        for (int bit_index = 0; bit_index < 8; bit_index++) {
+            if ((tid_bitmap[byte_index] & (1 << bit_index)) == 0) {
+                int tid = byte_index * 8 + bit_index;
+                tid_bitmap[byte_index] |= (1 << bit_index);
+                return tid;
             }
         }
-        return -1;
     }
-
-    int create_process()
-    {
-        uint32_t pid = add_to_bitmap();
-
-        if (pid == -1)
-        {
-            return ERROR;
-        }
-
-        PCB *process = (PCB *)malloc(sizeof(PCB));
-
-        process->state = READY;
-        process->pid = pid;
-    }
-
-    int kill_process(uint32_t pid){
-        clear_bitmap(pid);
-    }
-
-    void context_switch(PCB *current)
-    {
-        process_table[current->pid] = *current;
-        int next_pid = (current->pid + 1) % MAX_PROCESSES;
-        PCB *next = &process_table[next_pid];
-        *current = *next;
-    }
-
+    return -1;
 }
+
+int create_task(){
+    struct task_struct new_task = {0};
+
+    new_task.tid = find_next_free_tid();
+    new_task.state = TASK_READY;
+    new_task.page_directory = create_page_directory();
+
+    task_table[new_task.tid] = &new_task;
+    return 1;
+}
+
+void schedule();
+int kill_task();
+int switch_task(); // returns tid of next task
